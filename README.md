@@ -1,107 +1,62 @@
-# This repo is no longer maintained. Consider using `npm init vite` and selecting the `svelte` option or — if you want a full-fledged app framework — use [SvelteKit](https://kit.svelte.dev), the official application framework for Svelte.
+# Apa Itu Twibbon? Fungsi, Manfaat, dan Cara Membuatnya 
 
----
+Di era digital saat ini, **twibbon** sudah tidak asing lagi, terutama saat ada kampanye sosial, acara komunitas, hingga kegiatan sekolah atau kampus. Twibbon sering digunakan untuk menunjukkan dukungan terhadap suatu kegiatan dengan cara yang sederhana namun efektif.
 
-# svelte app
+# Apa Itu Twibbon? 
 
-This is a project template for [Svelte](https://svelte.dev) apps. It lives at https://github.com/sveltejs/template.
+Twibbon adalah **bingkai digital transparan** yang biasanya dipasang pada foto profil atau gambar seseorang. Bingkai ini dapat berupa desain khusus dengan logo, tulisan, atau elemen visual lain yang mewakili sebuah acara, kampanye, atau gerakan tertentu.
 
-To create a new project based on this template using [degit](https://github.com/Rich-Harris/degit):
+Misalnya, ketika ada acara **Hari Kemerdekaan**, twibbon dengan tema merah putih banyak digunakan oleh masyarakat untuk menunjukkan rasa nasionalisme melalui foto profil media sosial.
 
-```bash
-npx degit sveltejs/template svelte-app
-cd svelte-app
-```
+# Fungsi Twibbon 
 
-*Note that you will need to have [Node.js](https://nodejs.org) installed.*
+**1. Media Promosi**
+Twibbon membantu mengenalkan acara atau kampanye secara cepat di media sosial.
 
+**2. Identitas dan Solidaritas**
+Dengan menggunakan twibbon yang sama, orang dapat merasa lebih terhubung dengan komunitas atau gerakan tertentu.
 
-## Get started
+**3. Meningkatkan Partisipasi**
+Semakin banyak orang memakai twibbon, semakin tinggi eksposur acara atau kampanye yang sedang berlangsung.
 
-Install the dependencies...
+**4. Kreativitas Visual**
+Desain twibbon dapat dikreasikan sedemikian rupa sehingga menarik perhatian audiens.
 
-```bash
-cd svelte-app
-npm install
-```
+# Manfaat Twibbon 
 
-...then start [Rollup](https://rollupjs.org):
+**Mudah digunakan**: cukup mengunggah foto ke platform twibbon, lalu hasilnya bisa langsung dipakai.
 
-```bash
-npm run dev
-```
+**Gratis dan praktis**: mayoritas layanan pembuatan twibbon tersedia gratis.
 
-Navigate to [localhost:8080](http://localhost:8080). You should see your app running. Edit a component file in `src`, save it, and reload the page to see your changes.
+**Viral di media sosial**: twibbon sangat cepat menyebar karena setiap pengguna biasanya membagikan hasilnya ke akun pribadi.
 
-By default, the server will only respond to requests from localhost. To allow connections from other computers, edit the `sirv` commands in package.json to include the option `--host 0.0.0.0`.
+**Meningkatkan branding**: baik untuk organisasi, perusahaan, maupun komunitas.
 
-If you're using [Visual Studio Code](https://code.visualstudio.com/) we recommend installing the official extension [Svelte for VS Code](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode). If you are using other editors you may need to install a plugin in order to get syntax highlighting and intellisense.
+# Cara Membuat Twibbon 
 
-## Building and running in production mode
+**1. Siapkan Desain Bingkai**
+Buat desain bingkai dengan format transparan (PNG). Bisa menggunakan aplikasi seperti Canva, Photoshop, atau CorelDraw.
 
-To create an optimised version of the app:
+**2. Gunakan Platform Twibbon**
+Unggah desain tersebut ke situs atau aplikasi penyedia twibbon, misalnya [Twibbonize](https://twibbonku.netlify.app/) atau aplikasi custom.
 
-```bash
-npm run build
-```
+**3. Sebarkan Link Twibbon**
+Bagikan link twibbon ke peserta acara, komunitas, atau publik agar mereka bisa langsung memasang foto masing-masing.
 
-You can run the newly built app with `npm run start`. This uses [sirv](https://github.com/lukeed/sirv), which is included in your package.json's `dependencies` so that the app will work when you deploy to platforms like [Heroku](https://heroku.com).
+**4. Gunakan di Media Sosial**
+Setelah foto dipasang twibbon, unggah ke media sosial untuk mendukung acara atau kampanye.
 
+# Contoh Penggunaan Twibbon 
 
-## Single-page app mode
+**Event Komunitas**: Gathering, workshop, atau acara sosial.
 
-By default, sirv will only respond to requests that match files in `public`. This is to maximise compatibility with static fileservers, allowing you to deploy your app anywhere.
+**Kampanye Sosial**: Donasi, kesehatan, pendidikan.
 
-If you're building a single-page app (SPA) with multiple routes, sirv needs to be able to respond to requests for *any* path. You can make it so by editing the `"start"` command in package.json:
+**Hari Besar Nasional**: Kemerdekaan, Hari Pahlawan, Hari Guru.
 
-```js
-"start": "sirv public --single"
-```
+**Branding Organisasi**: Logo perusahaan atau instansi.
 
-## Using TypeScript
+# Kesimpulan 
 
-This template comes with a script to set up a TypeScript development environment, you can run it immediately after cloning the template with:
+Twibbon adalah alat promosi visual yang **sederhana namun efektif**. Dengan desain bingkai yang kreatif, twibbon mampu meningkatkan partisipasi publik, memperkuat identitas acara, sekaligus memperluas jangkauan promosi di media sosial.
 
-```bash
-node scripts/setupTypeScript.js
-```
-
-Or remove the script via:
-
-```bash
-rm scripts/setupTypeScript.js
-```
-
-If you want to use `baseUrl` or `path` aliases within your `tsconfig`, you need to set up `@rollup/plugin-alias` to tell Rollup to resolve the aliases. For more info, see [this StackOverflow question](https://stackoverflow.com/questions/63427935/setup-tsconfig-path-in-svelte).
-
-## Deploying to the web
-
-### With [Vercel](https://vercel.com)
-
-Install `vercel` if you haven't already:
-
-```bash
-npm install -g vercel
-```
-
-Then, from within your project folder:
-
-```bash
-cd public
-vercel deploy --name my-project
-```
-
-### With [surge](https://surge.sh/)
-
-Install `surge` if you haven't already:
-
-```bash
-npm install -g surge
-```
-
-Then, from within your project folder:
-
-```bash
-npm run build
-surge public my-project.surge.sh
-```
