@@ -220,7 +220,7 @@ function showButtons(){
     const out=generateOutputCanvas();
     out.toBlob(async blob=>{
       const file=new File([blob],'twibbon.png',{type:'image/png'});
-      if(navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:'Twibbon'}); return; }catch(e){} }
+      if(navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:'TwibbonKu', text:'Ini adalah situs web tempat Anda dapat menambahkan foto dalam bingkai.', url:'https://twibbonku.netlify.app/'}); return; }catch(e){} }
       window.open(URL.createObjectURL(blob));
     });
   });
