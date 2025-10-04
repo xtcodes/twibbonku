@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Halaman Tidak Ditemukan</title>
+<style>
+html, body {
+margin: 0;
+padding: 0;
+height: 100%;
+overflow: hidden; /* blok scroll */
+font-family: Arial, sans-serif;
+background: #f5f5f5;
+display: flex;
+justify-content: center;
+align-items: center;
+color: #333;
+}
+.container {
+text-align: center;
+}
+h1 {
+font-size: 6rem;
+margin: 0;
+color: #ff4b5c;
+}
+p {
+font-size: 1.2rem;
+margin: 10px 0 20px;
+}
+a {
+text-decoration: none;
+background: #ff4b5c;
+color: #fff;
+padding: 10px 20px;
+border-radius: 5px;
+transition: 0.3s;
+}
+a:hover {
+background: #e63e4d;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>404</h1>
+<p>Oops! Halaman yang kamu cari tidak ditemukan.</p>
+<a href="https://twibbonku.netlify.app/">Kembali ke Beranda</a>
+</div>
+
+<script>
+// Blokir refresh keyboard (desktop)
+document.addEventListener('keydown', function (e) {
+if (e.key === "F5" || (e.ctrlKey && e.key === "r")) {
+e.preventDefault();
+alert("Refresh dinonaktifkan di halaman ini!");
+}
+});
+
+// Blokir pull-to-refresh (mobile)
+document.addEventListener('touchmove', function (e) {
+e.preventDefault();
+}, { passive: false });
+</script>
+</body>
+</html>
