@@ -29,6 +29,10 @@ let modelImg = null, twibbonImg = null, twibbonFullRes = null;
 let isLocked = false, isCustomTwibbon = false, downloadBtn = null, isEditing = false;
 let state = {scale: 1, tx: 0, ty: 0};
 
+const scaleMin = 0.1;
+const scaleMax = 10;
+function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
+
 function resizeCanvas() { 
   const rect = canvas.parentElement.getBoundingClientRect(); 
   canvas.width = Math.round(rect.width); 
@@ -38,13 +42,6 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas); 
 resizeCanvas();
 
-function loadDefaultTwibbon(){ 
-  const d = new Image(); 
-  d.src = 'twibbon.png'; 
-  d.onload = ()=>{ twibbonImg = d; twibbonFullRes = d; draw(); } 
-}
-loadDefaultTwibbon();
-
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.imageSmoothingEnabled = true;
@@ -52,18 +49,27 @@ function draw(){
 
   if(modelImg){ 
     ctx.save(); 
-    ctx.translate(canvas.width/2+state.tx, canvas.height/2+state.ty); 
-    ctx.scale(state.scale,state.scale); 
-    ctx.drawImage(modelImg,-modelImg.width/2,-modelImg.height/2); 
+    ctx.translate(canvas.width/2 + state.tx, canvas.height/2 + state.ty); 
+    ctx.scale(state.scale, state.scale); 
+    ctx.drawImage(modelImg, -modelImg.width/2, -modelImg.height/2); 
     ctx.restore();
   }
+
   if(twibbonImg && twibbonImg.naturalWidth>0){ 
     ctx.save(); 
-    ctx.globalAlpha=(isEditing&&!isLocked)?0.5:1; 
-    ctx.drawImage(twibbonImg,0,0,canvas.width,canvas.height); 
+    ctx.globalAlpha = (isEditing&&!isLocked) ? 0.5 : 1; 
+    ctx.drawImage(twibbonImg, 0, 0, canvas.width, canvas.height); 
     ctx.restore();
   }
 }
+
+// ===== Load default twibbon =====
+function loadDefaultTwibbon(){ 
+  const d = new Image(); 
+  d.src = 'twibbon.png'; 
+  d.onload = ()=>{ twibbonImg = d; twibbonFullRes = d; draw(); } 
+}
+loadDefaultTwibbon();
 
 // ===== Upload Model =====
 document.getElementById('modelInput').addEventListener('change', e=>{
@@ -74,8 +80,7 @@ document.getElementById('modelInput').addEventListener('change', e=>{
   img.onload = ()=>{
     modelImg = img;
     state.scale = Math.min(canvas.width/img.width, canvas.height/img.height); 
-    state.tx = 0; 
-    state.ty = 0;
+    state.tx = 0; state.ty = 0;
     draw(); 
     showButtons(); 
     showNotification("Gambar berhasil diunggah!","success");
@@ -174,7 +179,7 @@ function showButtons(){
       canvas.style.pointerEvents = "none";
       document.querySelector(".small").textContent = "Interaksi dinonaktifkan setelah unduh.";
       const eb = document.getElementById("editBtn");
-      if(eb) eb.style.display = "flex";
+      if(eb) eb.style.display="flex";
       draw();
     });
   });
@@ -209,69 +214,14 @@ function generateOutputCanvas(){
   if(modelImg){ 
     c.save(); 
     const scale=w/canvas.width; 
-    c.translate(w/2+state.tx*scale,h/2+state.ty*scale); 
-    c.scale(state.scale*scale,state.scale*scale); 
-    c.drawImage(modelImg,-modelImg.width/2,-modelImg.height/2); 
+    c.translate(w/2 + state.tx*scale, h/2 + state.ty*scale); 
+    c.scale(state.scale*scale, state.scale*scale); 
+    c.drawImage(modelImg, -modelImg.width/2, -modelImg.height/2); 
     c.restore(); 
   }
   if(twibbonFullRes) c.drawImage(twibbonFullRes,0,0,w,h);
   return out;
 }
-
-// ===== Touch gestures (mobile) =====
-let lastTouchDist=0,lastTouch=null,isTouching=false;
-canvas.addEventListener('touchstart', e=>{
-  if(isLocked||!modelImg) return;
-  e.preventDefault(); 
-  isEditing=true; 
-  draw();
-  if(e.touches.length===1){ 
-    isTouching=true; 
-    const t=e.touches[0]; 
-    lastTouch={x:t.clientX,y:t.clientY}; 
-  } else if(e.touches.length===2){ 
-    isTouching=true; 
-    const dx = e.touches[1].clientX - e.touches[0].clientX;
-    const dy = e.touches[1].clientY - e.touches[0].clientY;
-    lastTouchDist = Math.hypot(dx, dy);
-  }
-});
-canvas.addEventListener('touchmove', e=>{
-  if(isLocked||!isTouching||!modelImg) return;
-  e.preventDefault();
-  if(e.touches.length===1 && lastTouch){ 
-    const t=e.touches[0]; 
-    const dx = t.clientX - lastTouch.x;
-    const dy = t.clientY - lastTouch.y;
-    lastTouch={x:t.clientX,y:t.clientY}; 
-    state.tx += dx; 
-    state.ty += dy; 
-    draw(); 
-  } else if(e.touches.length===2){ 
-    const dx = e.touches[1].clientX - e.touches[0].clientX;
-    const dy = e.touches[1].clientY - e.touches[0].clientY;
-    const dist = Math.hypot(dx, dy);
-    const scaleFactor = dist / lastTouchDist;
-
-    // Zoom midpoint dua jari
-    const midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - canvas.getBoundingClientRect().left;
-    const midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - canvas.getBoundingClientRect().top;
-    state.tx = midX - (midX - state.tx) * scaleFactor;
-    state.ty = midY - (midY - state.ty) * scaleFactor;
-
-    state.scale *= scaleFactor;
-    lastTouchDist = dist;
-    draw();
-  }
-});
-canvas.addEventListener('touchend', e=>{ 
-  if(e.touches.length===0){ 
-    isTouching=false; 
-    lastTouch=null; 
-    isEditing=false; 
-    draw(); 
-  } 
-});
 
 // ===== Mouse drag & zoom (desktop) =====
 let isMouseDown = false;
@@ -283,7 +233,6 @@ canvas.addEventListener('mousedown', e=>{
   isEditing = true;
   isMouseDown = true;
   lastMousePos = {x: e.clientX, y: e.clientY};
-  draw();
 });
 
 canvas.addEventListener('mousemove', e=>{
@@ -301,30 +250,91 @@ canvas.addEventListener('mouseup', e=>{
   if(isLocked) return;
   isMouseDown = false;
   isEditing = false;
-  draw();
 });
 
 canvas.addEventListener('mouseleave', e=>{
   if(isLocked) return;
   isMouseDown = false;
   isEditing = false;
-  draw();
 });
 
-// Zoom dengan wheel, centered di pointer
+// Zoom dengan wheel
 canvas.addEventListener('wheel', e=>{
   if(isLocked || !modelImg) return;
   e.preventDefault();
-  const zoomFactor = Math.pow(1.001, -e.deltaY); // scroll up = zoom in
-
+  const zoomFactor = Math.pow(1.001, -e.deltaY);
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
 
-  state.tx = mx - (mx - state.tx) * zoomFactor;
-  state.ty = my - (my - state.ty) * zoomFactor;
-  state.scale *= zoomFactor;
+  const oldScale = state.scale;
+  const newScale = clamp(state.scale * zoomFactor, scaleMin, scaleMax);
+
+  state.tx = mx - ((mx - state.tx) * newScale / oldScale);
+  state.ty = my - ((my - state.ty) * newScale / oldScale);
+  state.scale = newScale;
   draw();
+});
+
+// ===== Touch gestures (mobile) =====
+let lastTouchDist = 0, lastTouch = null, isTouching = false;
+
+canvas.addEventListener('touchstart', e=>{
+  if(isLocked || !modelImg) return;
+  e.preventDefault();
+  isEditing = true;
+
+  if(e.touches.length === 1){
+    isTouching = true;
+    const t = e.touches[0];
+    lastTouch = {x: t.clientX, y: t.clientY};
+  } else if(e.touches.length === 2){
+    isTouching = true;
+    const dx = e.touches[1].clientX - e.touches[0].clientX;
+    const dy = e.touches[1].clientY - e.touches[0].clientY;
+    lastTouchDist = Math.hypot(dx, dy);
+  }
+});
+
+canvas.addEventListener('touchmove', e=>{
+  if(isLocked || !isTouching || !modelImg) return;
+  e.preventDefault();
+
+  if(e.touches.length === 1 && lastTouch){
+    const t = e.touches[0];
+    const dx = t.clientX - lastTouch.x;
+    const dy = t.clientY - lastTouch.y;
+    lastTouch = {x: t.clientX, y: t.clientY};
+    state.tx += dx;
+    state.ty += dy;
+    draw();
+  } else if(e.touches.length === 2){
+    const dx = e.touches[1].clientX - e.touches[0].clientX;
+    const dy = e.touches[1].clientY - e.touches[0].clientY;
+    const dist = Math.hypot(dx, dy);
+    const scaleFactor = dist / lastTouchDist;
+
+    const rect = canvas.getBoundingClientRect();
+    const midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top;
+
+    const oldScale = state.scale;
+    const newScale = clamp(state.scale * scaleFactor, scaleMin, scaleMax);
+
+    state.tx = midX - ((midX - state.tx) * newScale / oldScale);
+    state.ty = midY - ((midY - state.ty) * newScale / oldScale);
+    state.scale = newScale;
+    lastTouchDist = dist;
+    draw();
+  }
+});
+
+canvas.addEventListener('touchend', e=>{
+  if(e.touches.length === 0){
+    isTouching = false;
+    lastTouch = null;
+    isEditing = false;
+  }
 });
 
 // ===== Tombol Edit =====
