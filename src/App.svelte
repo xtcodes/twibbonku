@@ -35,10 +35,6 @@
   </div>
 </div>
 
-<footer class="app-footer">
-  <p>&copy; 2025 Twibbon App — dibuat dengan ❤️</p>
-</footer>
-
 <style>
 .info-popup { 
   position:fixed; 
