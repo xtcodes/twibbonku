@@ -169,3 +169,10 @@ input[type=file]{
   transform: translate(-50%, -50%);
   border-radius: 1px;
 }
+.app-footer {
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 20px;
+  width: 100%;
+}
