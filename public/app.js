@@ -114,7 +114,6 @@ function showButtons(){
     const url = URL.createObjectURL(f); 
     const img = new Image();
     img.onload = ()=>{
-      // cek transparansi
       const checker = document.createElement('canvas'); 
       checker.width = img.width; checker.height = img.height;
       const cctx = checker.getContext('2d'); 
@@ -124,7 +123,6 @@ function showButtons(){
       for(let i=3;i<pixels.length;i+=4){ if(pixels[i]<255){ hasTransparency=true; break; } }
       if(!hasTransparency){ alert("Twibbon tidak valid!"); URL.revokeObjectURL(url); return; }
 
-      // ===== Gunakan full resolution langsung =====
       twibbonFullRes = img;
       twibbonImg = img;
       isCustomTwibbon = true;
@@ -233,7 +231,9 @@ canvas.addEventListener('touchstart', e=>{
     lastTouch={x:t.clientX,y:t.clientY}; 
   } else if(e.touches.length===2){ 
     isTouching=true; 
-    lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); 
+    const dx = e.touches[1].clientX - e.touches[0].clientX;
+    const dy = e.touches[1].clientY - e.touches[0].clientY;
+    lastTouchDist = Math.hypot(dx, dy);
   }
 });
 canvas.addEventListener('touchmove', e=>{
@@ -241,19 +241,27 @@ canvas.addEventListener('touchmove', e=>{
   e.preventDefault();
   if(e.touches.length===1 && lastTouch){ 
     const t=e.touches[0]; 
-    const dx=t.clientX-lastTouch.x; 
-    const dy=t.clientY-lastTouch.y; 
+    const dx = t.clientX - lastTouch.x;
+    const dy = t.clientY - lastTouch.y;
     lastTouch={x:t.clientX,y:t.clientY}; 
-    state.tx+=dx; 
-    state.ty+=dy; 
+    state.tx += dx; 
+    state.ty += dy; 
     draw(); 
   } else if(e.touches.length===2){ 
-    const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); 
-    const scaleChange=dist/lastTouchDist; 
-    lastTouchDist=dist; 
-    state.scale*=scaleChange; 
-    state.scale=Math.max(0.2,Math.min(state.scale,5)); 
-    draw(); 
+    const dx = e.touches[1].clientX - e.touches[0].clientX;
+    const dy = e.touches[1].clientY - e.touches[0].clientY;
+    const dist = Math.hypot(dx, dy);
+    const scaleFactor = dist / lastTouchDist;
+
+    // Zoom midpoint dua jari
+    const midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - canvas.getBoundingClientRect().left;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - canvas.getBoundingClientRect().top;
+    state.tx = midX - (midX - state.tx) * scaleFactor;
+    state.ty = midY - (midY - state.ty) * scaleFactor;
+
+    state.scale *= scaleFactor;
+    lastTouchDist = dist;
+    draw();
   }
 });
 canvas.addEventListener('touchend', e=>{ 
@@ -269,7 +277,6 @@ canvas.addEventListener('touchend', e=>{
 let isMouseDown = false;
 let lastMousePos = {x:0, y:0};
 
-// Drag dengan mouse
 canvas.addEventListener('mousedown', e=>{
   if(isLocked || !modelImg) return;
   e.preventDefault();
@@ -304,17 +311,19 @@ canvas.addEventListener('mouseleave', e=>{
   draw();
 });
 
-// Zoom dengan wheel
+// Zoom dengan wheel, centered di pointer
 canvas.addEventListener('wheel', e=>{
   if(isLocked || !modelImg) return;
   e.preventDefault();
-  const zoomFactor = 1.05;
-  if(e.deltaY < 0){
-    state.scale *= zoomFactor;
-  } else {
-    state.scale /= zoomFactor;
-  }
-  state.scale = Math.max(0.2, Math.min(state.scale,5));
+  const zoomFactor = Math.pow(1.001, -e.deltaY); // scroll up = zoom in
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  state.tx = mx - (mx - state.tx) * zoomFactor;
+  state.ty = my - (my - state.ty) * zoomFactor;
+  state.scale *= zoomFactor;
   draw();
 });
 
