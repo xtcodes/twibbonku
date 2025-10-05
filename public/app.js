@@ -1,155 +1,56 @@
-/* ===== Global State ===== */
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let modelImg = null;
-let twibbonImg = null;
-let twibbonFullRes = null;
-let state = { scale:1, tx:0, ty:0 };
-let isEditing = false;
-let isLocked = false;
-
-/* Resize canvas */
-function resizeCanvas(){
-  const rect = canvas.parentElement.getBoundingClientRect();
-  canvas.width = Math.round(rect.width);
-  canvas.height = Math.round(rect.height);
-  draw();
+function showNotification(message,type="info"){
+  const container=document.getElementById("notification-container");
+  const notif=document.createElement("div");
+  notif.classList.add("notification");
+  if(type!=="info") notif.classList.add(type);
+  notif.textContent=message;
+  container.appendChild(notif);
+  setTimeout(()=>{ notif.style.animation="fadeOut 0.5s forwards"; notif.addEventListener("animationend",()=>notif.remove()); },3000);
 }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+window.alert=function(msg){ showNotification(msg,"error"); };
 
-/* Load default twibbon */
-function loadDefaultTwibbon(){
-  twibbonImg = new Image();
-  twibbonImg.src = 'twibbon.png';
-  twibbonFullRes = twibbonImg;
-  twibbonImg.onload = ()=> draw();
-}
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let modelImg=null, twibbonImg=null, twibbonFullRes=null;
+let isLocked=false, isCustomTwibbon=false, downloadBtn=null, isEditing=false;
+let state={scale:1,tx:0,ty:0};
+
+function resizeCanvas(){ const rect=canvas.parentElement.getBoundingClientRect(); canvas.width=Math.round(rect.width); canvas.height=Math.round(rect.height); draw();}
+window.addEventListener('resize',resizeCanvas); resizeCanvas();
+
+function loadDefaultTwibbon(){ const d=new Image(); d.src='twibbon.png'; d.onload=()=>{ twibbonImg=d; twibbonFullRes=d; draw(); } }
 loadDefaultTwibbon();
 
-/* Draw */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(modelImg){
-    ctx.save();
-    ctx.translate(canvas.width/2 + state.tx, canvas.height/2 + state.ty);
-    ctx.scale(state.scale,state.scale);
-    ctx.drawImage(modelImg,-modelImg.width/2,-modelImg.height/2);
-    ctx.restore();
-  }
-  if(twibbonImg && twibbonImg.naturalWidth>0){
-    ctx.save();
-    ctx.globalAlpha = (isEditing && !isLocked)?0.5:1.0;
-    ctx.drawImage(twibbonImg,0,0,canvas.width,canvas.height);
-    ctx.restore();
-  }
+  if(modelImg){ ctx.save(); ctx.translate(canvas.width/2+state.tx,canvas.height/2+state.ty); ctx.scale(state.scale,state.scale); ctx.drawImage(modelImg,-modelImg.width/2,-modelImg.height/2); ctx.restore();}
+  if(twibbonImg && twibbonImg.naturalWidth>0){ ctx.save(); ctx.globalAlpha=(isEditing&&!isLocked)?0.5:1; ctx.drawImage(twibbonImg,0,0,canvas.width,canvas.height); ctx.restore();}
 }
 
-/* ===== Gestures (drag/zoom) ===== */
-let pointers = new Map();
-let initialPinchDistance = 0;
-let pinchStart = {scale:1, tx:0, ty:0};
-function clientToCanvas(clientX, clientY){
-  const rect = canvas.getBoundingClientRect();
-  return { x:(clientX-rect.left)*canvas.width/rect.width, y:(clientY-rect.top)*canvas.height/rect.height };
-}
-function getDistance(p1,p2){ return Math.hypot(p2.x-p1.x, p2.y-p1.y); }
-function getCenter(p1,p2){ return {x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2}; }
-
-canvas.addEventListener("pointerdown", e=>{
-  if(!modelImg || isLocked) return;
-  isEditing = true; draw();
-  pointers.set(e.pointerId, clientToCanvas(e.clientX,e.clientY));
-  canvas.setPointerCapture(e.pointerId);
-});
-canvas.addEventListener("pointermove", e=>{
-  if(!modelImg || isLocked || !pointers.has(e.pointerId)) return;
-  const prev = pointers.get(e.pointerId);
-  const pt = clientToCanvas(e.clientX,e.clientY);
-  pointers.set(e.pointerId, pt);
-  if(pointers.size===1){
-    state.tx += pt.x-prev.x; state.ty += pt.y-prev.y; draw();
-  } else if(pointers.size===2){
-    const [p1,p2] = Array.from(pointers.values());
-    const dist = getDistance(p1,p2); const center = getCenter(p1,p2);
-    if(initialPinchDistance===0){ initialPinchDistance=dist; pinchStart={...state}; }
-    const factor = dist/initialPinchDistance;
-    let newScale = pinchStart.scale*factor;
-    const minScale = Math.min(canvas.width/modelImg.width, canvas.height/modelImg.height)*0.25;
-    const maxScale = 8;
-    newScale = Math.max(minScale, Math.min(maxScale,newScale));
-    const ratio = newScale/state.scale;
-    const cx=canvas.width/2, cy=canvas.height/2;
-    const px=center.x-cx, py=center.y-cy;
-    state.tx = state.tx*ratio + px*(1-ratio);
-    state.ty = state.ty*ratio + py*(1-ratio);
-    state.scale=newScale; draw();
-  }
-});
-canvas.addEventListener("pointerup", e=>{
-  pointers.delete(e.pointerId);
-  if(pointers.size<2) initialPinchDistance=0;
-  if(pointers.size===0){ isEditing=false; draw(); }
-  canvas.releasePointerCapture(e.pointerId);
-});
-canvas.addEventListener("pointercancel", e=>{
-  pointers.delete(e.pointerId);
-  if(pointers.size<2) initialPinchDistance=0;
-  if(pointers.size===0){ isEditing=false; draw(); }
-});
-canvas.addEventListener("wheel", e=>{
-  if(!modelImg || isLocked) return;
-  e.preventDefault(); isEditing=true; draw();
-  const rect=canvas.getBoundingClientRect();
-  const p={x:(e.clientX-rect.left)*canvas.width/rect.width, y:(e.clientY-rect.top)*canvas.height/rect.height};
-  const px=p.x-canvas.width/2, py=p.y-canvas.height/2;
-  const factor=e.deltaY<0?1.12:0.88;
-  let newScale=state.scale*factor;
-  const minScale=Math.min(canvas.width/modelImg.width,canvas.height/modelImg.height)*0.25;
-  const maxScale=8; newScale=Math.max(minScale, Math.min(maxScale,newScale));
-  const ratio=newScale/state.scale;
-  state.tx = state.tx*ratio + px*(1-ratio); state.ty = state.ty*ratio + py*(1-ratio); state.scale=newScale;
-  draw();
-  clearTimeout(canvas._wheelTimeout);
-  canvas._wheelTimeout = setTimeout(()=>{ isEditing=false; draw(); },300);
-},{passive:false});
-
-/* ===== Upload Model Image ===== */
-document.getElementById('modelInput').addEventListener('change', e=>{
+document.getElementById('modelInput').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f) return;
   const url=URL.createObjectURL(f); const img=new Image();
   img.onload=()=>{
-    modelImg=img; state.scale=Math.min(canvas.width/img.width,canvas.height/img.height);
-    state.tx=0; state.ty=0; draw(); showButtons();
-    showNotifikasi("Gambar berhasil diunggah!","success");
+    modelImg=img;
+    state.scale=Math.min(canvas.width/img.width,canvas.height/img.height); state.tx=0; state.ty=0;
+    draw(); showButtons(); showNotification("Gambar berhasil diunggah!","success");
+      // Reset tombol download
+  if(downloadBtn){
+    downloadBtn.disabled = false;
+    downloadBtn.innerHTML = '<i class="fas fa-download"></i><span> Download</span>';
+  }
     URL.revokeObjectURL(url);
-  };
-  img.src=url;
+  }; img.src=url;
 });
 
-/* ===== Info Button ===== */
-const infoBtn = document.getElementById('infoBtn');
-const infoPopup = document.getElementById('infoPopup');
-infoBtn.addEventListener('click', ()=> infoPopup.style.display='flex');
-document.getElementById('closeInfoBtn').addEventListener('click', ()=> infoPopup.style.display='none');
+const infoBtn=document.getElementById('infoBtn'); const infoPopup=document.getElementById('infoPopup');
+infoBtn.addEventListener('click',()=>infoPopup.style.display='flex');
+document.getElementById('closeInfoBtn').addEventListener('click',()=>infoPopup.style.display='none');
 
-/* ===== Reset Download Button ===== */
-function resetDownloadButton(){
-  const btn = document.getElementById('downloadBtn');
-  if(!btn) return;
-  btn.innerHTML = `<i class="fas fa-download"></i><span>Download</span>`;
-  btn.disabled = false;
-  btn.style.background = "";
-  btn.style.borderColor = "";
-  btn.style.color = "";
-  btn.style.cursor = "pointer";
-}
-
-/* ===== Show Buttons ===== */
 function showButtons(){
   const controls=document.getElementById('controls');
   controls.innerHTML=`
-    <div style="display:flex;gap:8px;flex:0 0 auto;align-items:center;">
+    <div style="display:flex;gap:8px;align-items:center;">
       <label class="btn btn-small" id="twibbonLabel" title="Unggah Twibbon">
         <i class="fas fa-image"></i>
         <input type="file" id="twibbonInput" accept="image/png">
@@ -157,89 +58,116 @@ function showButtons(){
       <button class="btn btn-small" id="shareBtn" title="Bagikan"><i class="fas fa-share-alt"></i></button>
     </div>
     <button class="btn btn-large" id="downloadBtn" title="Unduh">
-      <i class="fas fa-download"></i><span>Download</span>
+      <i class="fas fa-download"></i><span> Download</span>
     </button>
   `;
+  downloadBtn=document.getElementById('downloadBtn'); downloadBtn.disabled=false;
 
-  /* Upload Twibbon */
-  document.getElementById('twibbonInput').addEventListener('change', e=>{
-    const f=e.target.files[0]; if(!f) return; 
-    if(f.type!=="image/png"){ showNotifikasi("Terjadi kesalahan!", "error"); return; }
-
-    const url = URL.createObjectURL(f);
-    const img = new Image();
-    img.onload = ()=>{
-      const tempCanvas=document.createElement("canvas");
-      tempCanvas.width=img.width; tempCanvas.height=img.height;
-      const tctx=tempCanvas.getContext("2d"); tctx.drawImage(img,0,0);
-      const pixels=tctx.getImageData(0,0,img.width,img.height).data;
+  document.getElementById('twibbonInput').addEventListener('change', e => {
+    const f=e.target.files[0]; if(!f) return;
+    if(f.type!=="image/png"){ alert("Hanya file PNG yang diizinkan!"); return; }
+    const url=URL.createObjectURL(f); const img=new Image();
+    img.onload=()=>{
+      const checker=document.createElement('canvas'); checker.width=img.width; checker.height=img.height;
+      const cctx=checker.getContext('2d'); cctx.drawImage(img,0,0);
+      const pixels=cctx.getImageData(0,0,img.width,img.height).data;
       let hasTransparency=false;
       for(let i=3;i<pixels.length;i+=4){ if(pixels[i]<255){ hasTransparency=true; break; } }
-      if(!hasTransparency){ showNotifikasi("Twibbon harus transparan!", "error"); URL.revokeObjectURL(url); return; }
-
-      // Simpan twibbon
+      if(!hasTransparency){ alert("Twibbon tidak valid!"); URL.revokeObjectURL(url); return; }
       twibbonFullRes=img;
-      const size=512;
-      const previewCanvas=document.createElement("canvas"); previewCanvas.width=size; previewCanvas.height=size;
-      const pctx=previewCanvas.getContext("2d"); pctx.drawImage(img,0,0,size,size);
-      const previewImg=new Image(); previewImg.src=previewCanvas.toDataURL("image/png");
-      previewImg.onload=()=>{ twibbonImg=previewImg; unlockEditing(); draw(); resetDownloadButton(); };
+      const prev=document.createElement('canvas'); prev.width=512; prev.height=512; prev.getContext('2d').drawImage(img,0,0,512,512);
+      const preview=new Image(); preview.onload=()=>{ twibbonImg=preview; isCustomTwibbon=true; isLocked=false; canvas.style.pointerEvents="auto"; document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; const eb=document.getElementById("editBtn"); if(eb) eb.style.display="none";   // Reset tombol download
+  if(downloadBtn){
+    downloadBtn.disabled = false;
+    downloadBtn.innerHTML = '<i class="fas fa-download"></i><span> Download</span>';
+  } draw(); showNotification("Twibbon berhasil diganti!","success"); };
+      preview.src=prev.toDataURL("image/png"); URL.revokeObjectURL(url);
+    }; img.src=url;
+  });
+
+  // ===== Tombol download final =====
+  downloadBtn.addEventListener('click', () => {
+    if(downloadBtn.disabled) return;
+    downloadBtn.disabled = true;
+
+    downloadBtn.innerHTML = `
+      <div class="spinner-wrapper">
+        <div class="spinner"></div>
+        <div class="center-square"></div>
+      </div>
+      <span class="loading-text" style="margin-left:6px;">0.0s</span>
+    `;
+
+    const loadingText = downloadBtn.querySelector('.loading-text');
+    const startTime = performance.now();
+
+    function updateTime(){
+      loadingText.textContent = ((performance.now()-startTime)/1000).toFixed(1) + 's';
+      requestAnimationFrame(updateTime);
+    }
+    requestAnimationFrame(updateTime);
+
+    const out = generateOutputCanvas();
+    out.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'twibbon.png';
+      a.click();
       URL.revokeObjectURL(url);
-    };
-    img.src=url;
+
+      // Setelah unduh selesai, tampilkan ceklis dan disable permanen
+      downloadBtn.innerHTML = '<i class="fas fa-check"></i> Unduhan Selesai';
+      downloadBtn.disabled = true;
+
+      isLocked = true;
+      canvas.style.pointerEvents = "none";
+      document.querySelector(".small").textContent = "Interaksi dinonaktifkan setelah unduh.";
+      const eb = document.getElementById("editBtn");
+      if(eb) eb.style.display = "flex";
+      draw();
+    });
   });
 
-  /* Download Button */
-  document.getElementById('downloadBtn').addEventListener('click', ()=>{
-    const btn=document.getElementById('downloadBtn');
-    let downlink=5; if(navigator.connection && navigator.connection.downlink) downlink=navigator.connection.downlink;
-    const fileSizeMB=2; let duration=(fileSizeMB/downlink)*1000;
-    if(duration<1000) duration=1000; if(duration>5000) duration=5000;
-    const start=performance.now(); let finished=false; let blobForDownload=null;
-    const outCanvas=generateOutputCanvas(); outCanvas.toBlob(blob=>{ blobForDownload=blob; },'image/png');
-    btn.innerHTML=`<div class="loading"><div class="spinner-wrap"><i class="fas fa-circle-notch fa-spin"></i><i class="fas fa-square"></i></div><span id="elapsed">0.0s</span></div>`;
-    btn.disabled=true;
-    function step(timestamp){
-      const elapsedMs=timestamp-start;
-      const elapsedSec=(elapsedMs/1000).toFixed(1);
-      const el=btn.querySelector('#elapsed'); if(el) el.textContent=elapsedSec+'s';
-      if(elapsedMs<duration) requestAnimationFrame(step); else doFinish();
-    }
-    function doFinish(){
-      if(finished) return; finished=true;
-      if(!blobForDownload){ const dataUrl=generateOutputCanvas().toDataURL('image/png'); const a=document.createElement('a'); a.href=dataUrl; a.download='twibbon.png'; a.click(); }
-      else{ const url=URL.createObjectURL(blobForDownload); const a=document.createElement('a'); a.href=url; a.download='twibbon.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500); }
-      btn.innerHTML=`<i class="fas fa-check"></i><span> Sudah diunduh</span>`;
-      btn.disabled=true; btn.style.background="#bbb"; btn.style.borderColor="#bbb"; btn.style.color="#555"; btn.style.cursor="not-allowed";
-      lockEditing();
-    }
-    requestAnimationFrame(step);
-  });
-
-  /* Share Button */
-  document.getElementById('shareBtn').addEventListener('click', ()=>{
+  document.getElementById('shareBtn').addEventListener('click', async ()=>{
     const out=generateOutputCanvas();
     out.toBlob(async blob=>{
-      const file=new File([blob],'twibbon.png',{type:'image/png'});
-      if(navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:'TwibbonKu', text:'Lihat twibbon saya!', url:'https://twibbonku.netlify.app/'}); return; }catch(e){} }
-      window.open(URL.createObjectURL(blob));
-    });
+      if(navigator.share && navigator.canShare?.({files:[new File([blob],'twibbon.png',{type:'image/png'})]})){
+        const file=new File([blob],'twibbon.png',{type:'image/png'});
+        try{ await navigator.share({title:'Twibbon Saya',text:'Yuk cek hasil Twibbon saya!',files:[file]}); showNotification("Twibbon berhasil dibagikan!","success"); }
+        catch(err){ showNotification("Berbagi dibatalkan.","error"); }
+      } else showNotification("Fitur bagikan tidak didukung di browser ini.","error");
+    },'image/png');
   });
 }
 
-/* ===== Output Canvas ===== */
 function generateOutputCanvas(){
   const out=document.createElement('canvas');
-  let w=twibbonFullRes?twibbonFullRes.width:1080;
-  let h=twibbonFullRes?twibbonFullRes.height:1080;
-  const maxSize=1500; if(w>maxSize || h>maxSize){ const ratio=Math.min(maxSize/w,maxSize/h); w=Math.round(w*ratio); h=Math.round(h*ratio); }
+  const w=twibbonFullRes?twibbonFullRes.width:1080;
+  const h=twibbonFullRes?twibbonFullRes.height:1080;
   out.width=w; out.height=h;
   const c=out.getContext('2d');
-  if(modelImg){ c.save(); const scaleFactor=w/canvas.width; c.translate(w/2+state.tx*scaleFactor,h/2+state.ty*scaleFactor); c.scale(state.scale*scaleFactor,state.scale*scaleFactor); c.drawImage(modelImg,-modelImg.width/2,-modelImg.height/2); c.restore(); }
-  if(twibbonFullRes && twibbonFullRes.naturalWidth>0) c.drawImage(twibbonFullRes,0,0,w,h);
+  if(modelImg){ c.save(); const scale=w/canvas.width; c.translate(w/2+state.tx*scale,h/2+state.ty*scale); c.scale(state.scale*scale,state.scale*scale); c.drawImage(modelImg,-modelImg.width/2,-modelImg.height/2); c.restore(); }
+  if(twibbonFullRes) c.drawImage(twibbonFullRes,0,0,w,h);
   return out;
 }
 
-/* ===== Lock/Unlock Editing ===== */
-function lockEditing(){ isLocked=true; isEditing=false; draw(); }
-function unlockEditing(){ isLocked=false; isEditing=false; draw(); }
+/* ===== Gestur ===== */
+let lastTouchDist=0,lastTouch=null,isTouching=false;
+canvas.addEventListener('touchstart',e=>{
+  if(isLocked||!modelImg) return;
+  e.preventDefault(); isEditing=true; draw();
+  if(e.touches.length===1){ isTouching=true; const t=e.touches[0]; lastTouch={x:t.clientX,y:t.clientY}; }
+  else if(e.touches.length===2){ isTouching=true; lastTouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+});
+canvas.addEventListener('touchmove',e=>{
+  if(isLocked||!isTouching||!modelImg) return;
+  e.preventDefault();
+  if(e.touches.length===1&&lastTouch){ const t=e.touches[0]; const dx=t.clientX-lastTouch.x; const dy=t.clientY-lastTouch.y; lastTouch={x:t.clientX,y:t.clientY}; state.tx+=dx; state.ty+=dy; draw(); }
+  else if(e.touches.length===2){ const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); const scaleChange=dist/lastTouchDist; lastTouchDist=dist; state.scale*=scaleChange; state.scale=Math.max(0.2,Math.min(state.scale,5)); draw(); }
+});
+canvas.addEventListener('touchend',e=>{ if(e.touches.length===0){ isTouching=false; lastTouch=null; isEditing=false; draw(); } });
+
+document.getElementById('editBtn').addEventListener('click',()=>{
+  isLocked=false; canvas.style.pointerEvents="auto"; document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; showNotification("Mode edit diaktifkan kembali","success"); document.getElementById('editBtn').style.display="none"; if(downloadBtn) downloadBtn.disabled=false; downloadBtn.innerHTML = '<i class="fas fa-download"></i><span> Download</span>'; draw();
+});
