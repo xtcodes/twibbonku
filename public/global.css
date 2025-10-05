@@ -1,163 +1,118 @@
 body{
-    font-family:sans-serif;
-    margin:0;
-    background:#f5f5f5;
-    display:flex;
-    justify-content:center;
-    padding:20px;
-  }
-  .app{
-    background:#fff;
-    border-radius:10px;
-    padding:16px;
-    max-width:480px;
-    width:100%;
-    box-shadow:0 4px 12px rgba(0,0,0,.1);
-  }
-  .canvas-wrap{
-    width:100%;
-    aspect-ratio:1/1;
-    background:#ddd;
-    border-radius:8px;
-    overflow:hidden;
-    margin-bottom:14px;
-    touch-action:none;
-  }
-  canvas{
-    width:100%;
-    height:100%;
-    display:block;
-    cursor:grab;
-    user-select:none;
-    -webkit-user-select:none;
-  }
-  .controls{
-    display:flex;
-    gap:8px;
-    align-items:stretch;
-  }
-  .btn{
-    border:2px solid #333;
-    border-radius:6px;
-    background:transparent;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:0;
-    margin:0;
-    gap:6px;
-  }
-  .btn i{
-    font-size:18px;
-  }
-  .btn-small{
-    flex:0 0 48px;
-    height:48px;
-    width:48px;
-  }
-  .btn-large{
-    flex:1;
-    height:48px;
-    padding:0 12px;
-    font-weight:700;
-    font-size:16px;
-  }
-  label.btn{
-    box-sizing:border-box;
-  }
-  input[type=file]{
-    display:none;
-  }
-  .small{
-    font-size:13px;
-    color:#6b7280;
-    margin-top:8px;
-  }
-  .loading {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    font-size:1em;
-  }
-  .spinner-wrap {
-    position:relative;
-    width:1.5em;
-    height:1.5em;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .spinner-wrap .fa-circle-notch.fa-spin {
-    font-size:1.5em;
-    color:#333;
-  }
-  .spinner-wrap .fa-square {
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:0.5em;
-    line-height:1;
-    color:#222;
-  }
-  .loading #elapsed {
-    font-size:1.2em;
-  }
-
-/* Container untuk notifikasi */
-#notifikasi-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
+  font-family:sans-serif;
+  margin:0;
+  background:#f5f5f5;
+  display:flex;
+  justify-content:center;
+  padding:20px;
 }
-
-/* Gaya dasar notifikasi */
-.notifikasi {
-  color: #fff;
-  padding: 12px 16px;
-  margin-top: 10px;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  opacity: 0;
-  transform: translateY(20px);
-  animation: muncul 0.3s forwards;
-  font-family: sans-serif;
-  min-width: 200px;
+.app{
+  background:#fff;
+  border-radius:10px;
+  padding:16px;
+  max-width:480px;
+  width:100%;
+  box-shadow:0 4px 12px rgba(0,0,0,.1);
+  position:relative;
 }
-
-/* Warna untuk tiap tipe */
-.notifikasi.success {
-  background-color: #2e7d32; /* hijau */
+.canvas-wrap{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  background:#ddd;
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:14px;
+  touch-action:none;
 }
-.notifikasi.info {
-  background-color: #1976d2; /* biru */
+canvas{
+  width:100%;
+  height:100%;
+  display:block;
+  cursor:grab;
+  user-select:none;
+  -webkit-user-select:none;
 }
-.notifikasi.warning {
-  background-color: #f9a825; /* kuning */
-  color: #222;
+#editBtn{
+  position:absolute;
+  bottom:10px;
+  right:10px;
+  width:30px;
+  height:30px;
+  border:none;
+  border-radius:50%;
+  background:rgba(0,0,0,0.4);
+  color:#fff;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  backdrop-filter:blur(4px);
 }
-.notifikasi.error {
-  background-color: #c62828; /* merah */
+#editBtn i{ 
+  font-size:14px; 
 }
-
-/* Animasi muncul dan hilang */
-@keyframes muncul {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.controls{
+  display:flex;
+  gap:8px;
+  align-items:stretch;
 }
-
-.notifikasi.hilang {
-  animation: hilang 0.4s forwards;
+.btn{
+  border:2px solid #333;
+  border-radius:6px;
+  background:transparent;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  margin:0;
+  gap:6px;
 }
-
-@keyframes hilang {
-  to {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+.btn i{ 
+  font-size:18px; 
+}
+.btn-small{ 
+  flex:0 0 48px; 
+  height:48px; 
+  width:48px; 
+}
+.btn-large{ 
+  flex:1; 
+  height:48px; 
+  padding:0 12px; 
+  font-weight:700; 
+  font-size:16px; 
+}
+.btn:disabled { 
+  opacity:1; 
+  background:#e0e0e0; 
+  border-color:#bdbdbd; 
+  color:#7a7a7a; 
+  cursor:not-allowed; 
+}
+.btn:disabled i { 
+  color:#7a7a7a; 
+}
+label.btn{ 
+  box-sizing:border-box; 
+}
+input[type=file]{ 
+  display:none; 
+}
+.small{ 
+  font-size:13px; 
+  color:#6b7280; 
+  margin-top:8px; 
+}
+#notification-container { 
+  position:absolute; 
+  bottom:16px; 
+  left:50%; 
+  transform:translateX(-50%); 
+  z-index:2000; 
+  display:flex; 
+  flex-direction:column-reverse; 
+  align-items:center; 
+  pointer-events:none; 
 }
