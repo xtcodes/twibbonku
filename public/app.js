@@ -57,7 +57,7 @@ function draw(){
 
   if(twibbonImg && twibbonImg.naturalWidth>0){ 
     ctx.save(); 
-    // Twibbon hanya semi-transparent saat edit aktif, selain itu full
+    // Twibbon hanya semi-transparent saat edit aktif
     ctx.globalAlpha = (isEditing && !isLocked) ? 0.5 : 1; 
     ctx.drawImage(twibbonImg, 0, 0, canvas.width, canvas.height); 
     ctx.restore();
@@ -129,15 +129,12 @@ function showButtons(){
       for(let i=3;i<pixels.length;i+=4){ if(pixels[i]<255){ hasTransparency=true; break; } }
       if(!hasTransparency){ alert("Twibbon tidak valid!"); URL.revokeObjectURL(url); return; }
 
-      // Reset state saat ganti twibbon
+      // Jangan reset posisi/scale user
       twibbonFullRes = img;
       twibbonImg = img;
       isCustomTwibbon = true;
       isLocked = false;
-      isEditing = false;
-      state.scale = 1;
-      state.tx = 0;
-      state.ty = 0;
+      isEditing = false; // reset transparansi
       canvas.style.pointerEvents="auto"; 
       document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; 
       const eb = document.getElementById("editBtn"); 
