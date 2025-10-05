@@ -1,20 +1,18 @@
-// fungsi menampilkan notifikasi
+// ===== Notifikasi =====
 function showNotification(message, type="info") {
   const container = document.getElementById("notification-container");
-  if (!container) return; // aman jika container belum ada
+  if (!container) return;
   const notif = document.createElement("div");
   notif.classList.add("notification");
   if (type !== "info") notif.classList.add(type);
   notif.textContent = message;
   container.appendChild(notif);
-
   setTimeout(() => {
     notif.style.animation = "fadeOut 0.5s forwards";
     notif.addEventListener("animationend", () => notif.remove());
   }, 3000);
 }
 
-// pastikan DOM siap dulu sebelum menimpa alert
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("notification-container");
   if (container) {
@@ -24,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ===== Canvas & image logic =====
+// ===== Canvas & Image Logic =====
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 let modelImg = null, twibbonImg = null, twibbonFullRes = null;
@@ -49,6 +47,9 @@ loadDefaultTwibbon();
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
   if(modelImg){ 
     ctx.save(); 
     ctx.translate(canvas.width/2+state.tx, canvas.height/2+state.ty); 
@@ -64,7 +65,7 @@ function draw(){
   }
 }
 
-// ===== Upload gambar =====
+// ===== Upload Model =====
 document.getElementById('modelInput').addEventListener('change', e=>{
   const f = e.target.files[0]; 
   if(!f) return;
@@ -78,7 +79,6 @@ document.getElementById('modelInput').addEventListener('change', e=>{
     draw(); 
     showButtons(); 
     showNotification("Gambar berhasil diunggah!","success");
-    // Reset tombol download
     if(downloadBtn){
       downloadBtn.disabled = false;
       downloadBtn.innerHTML = '<i class="fas fa-download"></i><span> Download</span>';
@@ -87,12 +87,6 @@ document.getElementById('modelInput').addEventListener('change', e=>{
   }; 
   img.src = url;
 });
-
-// ===== Info popup =====
-const infoBtn = document.getElementById('infoBtn'); 
-const infoPopup = document.getElementById('infoPopup');
-infoBtn.addEventListener('click',()=>infoPopup.style.display='flex');
-document.getElementById('closeInfoBtn').addEventListener('click',()=>infoPopup.style.display='none');
 
 // ===== Show dynamic buttons =====
 function showButtons(){
@@ -112,6 +106,7 @@ function showButtons(){
   downloadBtn = document.getElementById('downloadBtn'); 
   downloadBtn.disabled = false;
 
+  // ===== Upload Twibbon =====
   document.getElementById('twibbonInput').addEventListener('change', e => {
     const f = e.target.files[0]; 
     if(!f) return; 
@@ -119,6 +114,7 @@ function showButtons(){
     const url = URL.createObjectURL(f); 
     const img = new Image();
     img.onload = ()=>{
+      // cek transparansi
       const checker = document.createElement('canvas'); 
       checker.width = img.width; checker.height = img.height;
       const cctx = checker.getContext('2d'); 
@@ -127,33 +123,28 @@ function showButtons(){
       let hasTransparency=false;
       for(let i=3;i<pixels.length;i+=4){ if(pixels[i]<255){ hasTransparency=true; break; } }
       if(!hasTransparency){ alert("Twibbon tidak valid!"); URL.revokeObjectURL(url); return; }
+
+      // ===== Gunakan full resolution langsung =====
       twibbonFullRes = img;
-      const prev = document.createElement('canvas'); 
-      prev.width=512; prev.height=512; 
-      prev.getContext('2d').drawImage(img,0,0,512,512);
-      const preview = new Image(); 
-      preview.onload = ()=>{
-        twibbonImg = preview; 
-        isCustomTwibbon=true; 
-        isLocked=false; 
-        canvas.style.pointerEvents="auto"; 
-        document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; 
-        const eb = document.getElementById("editBtn"); 
-        if(eb) eb.style.display="none";   
-        if(downloadBtn){
-          downloadBtn.disabled = false;
-          downloadBtn.innerHTML = '<i class="fas fa-download"></i><span> Download</span>';
-        }
-        draw(); 
-        showNotification("Twibbon berhasil diganti!","success"); 
-      };
-      preview.src = prev.toDataURL("image/png"); 
+      twibbonImg = img;
+      isCustomTwibbon = true;
+      isLocked = false; 
+      canvas.style.pointerEvents="auto"; 
+      document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; 
+      const eb = document.getElementById("editBtn"); 
+      if(eb) eb.style.display="none";   
+      if(downloadBtn){
+        downloadBtn.disabled = false;
+        downloadBtn.innerHTML = '<i class="fas fa-download"></i><span> Download</span>';
+      }
+      draw(); 
+      showNotification("Twibbon berhasil diganti!","success"); 
       URL.revokeObjectURL(url);
     }; 
     img.src = url;
   });
 
-  // ===== Tombol download =====
+  // ===== Tombol Download =====
   downloadBtn.addEventListener('click', () => {
     if(downloadBtn.disabled) return;
     downloadBtn.disabled = true;
@@ -190,6 +181,7 @@ function showButtons(){
     });
   });
 
+  // ===== Tombol Share =====
   document.getElementById('shareBtn').addEventListener('click', async ()=>{
     const out=generateOutputCanvas();
     out.toBlob(async blob=>{
@@ -206,12 +198,16 @@ function showButtons(){
   });
 }
 
+// ===== Generate Output Canvas Full Resolution =====
 function generateOutputCanvas(){
   const out=document.createElement('canvas');
   const w=twibbonFullRes?twibbonFullRes.width:1080;
   const h=twibbonFullRes?twibbonFullRes.height:1080;
   out.width=w; out.height=h;
   const c=out.getContext('2d');
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = 'high';
+
   if(modelImg){ 
     c.save(); 
     const scale=w/canvas.width; 
@@ -224,7 +220,7 @@ function generateOutputCanvas(){
   return out;
 }
 
-/* ===== Gestur ===== */
+// ===== Gestur =====
 let lastTouchDist=0,lastTouch=null,isTouching=false;
 canvas.addEventListener('touchstart', e=>{
   if(isLocked||!modelImg) return;
@@ -282,9 +278,14 @@ document.getElementById('editBtn').addEventListener('click', ()=>{
   draw();
 });
 
-// Peringatan sebelum user keluar halaman
+// ===== Info popup =====
+const infoBtn = document.getElementById('infoBtn'); 
+const infoPopup = document.getElementById('infoPopup');
+infoBtn.addEventListener('click',()=>infoPopup.style.display='flex');
+document.getElementById('closeInfoBtn').addEventListener('click',()=>infoPopup.style.display='none');
+
+// ===== Peringatan sebelum keluar halaman =====
 window.addEventListener('beforeunload', (e) => {
-  // Hanya menampilkan dialog konfirmasi standar browser
   e.preventDefault();
-  e.returnValue = ''; // diperlukan untuk Chrome
+  e.returnValue = '';
 });
