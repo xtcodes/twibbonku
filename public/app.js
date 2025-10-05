@@ -283,11 +283,16 @@ document.getElementById('editBtn').addEventListener('click', ()=>{
 });
 
 // Peringatan sebelum user keluar halaman
-window.addEventListener('beforeunload', (e) => {
-  // Tampilkan notifikasi kecil di app dulu (opsional)
-  showNotification("Pastikan Anda sudah menyimpan Twibbon!", "info");
+let allowBeforeUnload = false;
 
-  // Standard dialog browser
+// Aktifkan peringatan setelah user mulai interaksi
+window.addEventListener('click', () => { allowBeforeUnload = true; }, {once: true});
+window.addEventListener('touchstart', () => { allowBeforeUnload = true; }, {once: true});
+
+// Peringatan sebelum user menutup atau pindah tab
+window.addEventListener('beforeunload', (e) => {
+  if (!allowBeforeUnload) return; // abaikan reload awal
+  showNotification("Pastikan Anda sudah menyimpan Twibbon!", "info");
   e.preventDefault();
-  e.returnValue = ''; // diperlukan untuk Chrome
+  e.returnValue = ''; // membuat browser tampilkan dialog konfirmasi
 });
