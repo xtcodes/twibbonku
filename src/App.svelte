@@ -18,6 +18,9 @@
   <div class="small">Tip: {name} untuk memindah, cubit untuk zoom.</div>
 </div>
 
+<!-- Tempat notifikasi -->
+<div id="notification-container"></div>
+
 <!-- Info Popup -->
 <div class="info-popup" id="infoPopup">
   <div class="info-content">
@@ -104,5 +107,31 @@
     color:#fff; 
     padding:8px 14px; 
     border-radius:6px; cursor:pointer;
+  }
+/* === Notifikasi sederhana === */
+  #notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+  }
+  .notification {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 6px;
+    margin-top: 10px;
+    min-width: 220px;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeIn 0.4s forwards;
+  }
+  .notification.success { background-color: #2ecc71; }
+  .notification.error { background-color: #e74c3c; }
+  @keyframes fadeIn {
+    to { opacity:1; transform:translateY(0); }
+  }
+  @keyframes fadeOut {
+    to { opacity:0; transform:translateY(-10px); }
   }
 </style>
