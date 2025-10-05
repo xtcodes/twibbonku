@@ -31,9 +31,9 @@ let state = {scale: 1, tx: 0, ty: 0};
 
 const scaleMin = 0.1;
 const scaleMax = 10;
-function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
+function clamp(val, min, max){ return Math.min(Math.max(val,min),max); }
 
-function resizeCanvas() { 
+function resizeCanvas(){ 
   const rect = canvas.parentElement.getBoundingClientRect(); 
   canvas.width = Math.round(rect.width); 
   canvas.height = Math.round(rect.height); 
@@ -57,7 +57,8 @@ function draw(){
 
   if(twibbonImg && twibbonImg.naturalWidth>0){ 
     ctx.save(); 
-    ctx.globalAlpha = (isEditing&&!isLocked) ? 0.5 : 1; 
+    // Twibbon hanya semi-transparent saat edit aktif, selain itu full
+    ctx.globalAlpha = (isEditing && !isLocked) ? 0.5 : 1; 
     ctx.drawImage(twibbonImg, 0, 0, canvas.width, canvas.height); 
     ctx.restore();
   }
@@ -128,10 +129,15 @@ function showButtons(){
       for(let i=3;i<pixels.length;i+=4){ if(pixels[i]<255){ hasTransparency=true; break; } }
       if(!hasTransparency){ alert("Twibbon tidak valid!"); URL.revokeObjectURL(url); return; }
 
+      // Reset state saat ganti twibbon
       twibbonFullRes = img;
       twibbonImg = img;
       isCustomTwibbon = true;
-      isLocked = false; 
+      isLocked = false;
+      isEditing = false;
+      state.scale = 1;
+      state.tx = 0;
+      state.ty = 0;
       canvas.style.pointerEvents="auto"; 
       document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; 
       const eb = document.getElementById("editBtn"); 
@@ -176,6 +182,7 @@ function showButtons(){
       downloadBtn.innerHTML = '<i class="fas fa-check"></i> Unduhan Selesai';
       downloadBtn.disabled = true;
       isLocked = true;
+      isEditing = false;
       canvas.style.pointerEvents = "none";
       document.querySelector(".small").textContent = "Interaksi dinonaktifkan setelah unduh.";
       const eb = document.getElementById("editBtn");
@@ -250,28 +257,29 @@ canvas.addEventListener('mouseup', e=>{
   if(isLocked) return;
   isMouseDown = false;
   isEditing = false;
+  draw();
 });
 
 canvas.addEventListener('mouseleave', e=>{
   if(isLocked) return;
   isMouseDown = false;
   isEditing = false;
+  draw();
 });
 
-// Zoom dengan wheel
+// ===== Zoom dengan wheel =====
 canvas.addEventListener('wheel', e=>{
   if(isLocked || !modelImg) return;
   e.preventDefault();
   const zoomFactor = Math.pow(1.001, -e.deltaY);
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-
   const oldScale = state.scale;
   const newScale = clamp(state.scale * zoomFactor, scaleMin, scaleMax);
 
-  state.tx = mx - ((mx - state.tx) * newScale / oldScale);
-  state.ty = my - ((my - state.ty) * newScale / oldScale);
+  // Offset dihitung relatif ke CENTER canvas
+  const cx = canvas.width/2;
+  const cy = canvas.height/2;
+  state.tx = cx - ((cx - state.tx) * newScale / oldScale);
+  state.ty = cy - ((cy - state.ty) * newScale / oldScale);
   state.scale = newScale;
   draw();
 });
@@ -314,15 +322,13 @@ canvas.addEventListener('touchmove', e=>{
     const dist = Math.hypot(dx, dy);
     const scaleFactor = dist / lastTouchDist;
 
-    const rect = canvas.getBoundingClientRect();
-    const midX = (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left;
-    const midY = (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top;
-
     const oldScale = state.scale;
     const newScale = clamp(state.scale * scaleFactor, scaleMin, scaleMax);
 
-    state.tx = midX - ((midX - state.tx) * newScale / oldScale);
-    state.ty = midY - ((midY - state.ty) * newScale / oldScale);
+    const cx = canvas.width/2;
+    const cy = canvas.height/2;
+    state.tx = cx - ((cx - state.tx) * newScale / oldScale);
+    state.ty = cy - ((cy - state.ty) * newScale / oldScale);
     state.scale = newScale;
     lastTouchDist = dist;
     draw();
@@ -334,12 +340,14 @@ canvas.addEventListener('touchend', e=>{
     isTouching = false;
     lastTouch = null;
     isEditing = false;
+    draw();
   }
 });
 
 // ===== Tombol Edit =====
 document.getElementById('editBtn').addEventListener('click', ()=>{
   isLocked=false; 
+  isEditing = false;
   canvas.style.pointerEvents="auto"; 
   document.querySelector(".small").textContent="Tip: geser untuk memindah, cubit untuk zoom."; 
   showNotification("Mode edit diaktifkan kembali","success"); 
