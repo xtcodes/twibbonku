@@ -36,31 +36,6 @@
 </div>
 
 <style>
-.notification { 
-  display:inline-block; 
-  background-color:#333; 
-  color:#fff; 
-  padding:10px 20px; 
-  border-radius:6px; 
-  margin-top:10px; 
-  text-align:right; 
-  opacity:0; 
-  transform:translateY(20px); 
-  animation:fadeIn 0.4s forwards; 
-  box-sizing:border-box; 
-  pointer-events:all; 
-  white-space:nowrap; 
-  max-width:90vw; 
-}
-.notification.success { 
-  background-color:#04AA6D; 
-}
-.notification.error { 
-  background-color:#f44336; 
-}
-@keyframes fadeIn { to{ opacity:1; transform:translateY(0);} }
-@keyframes fadeOut { to{ opacity:0; transform:translateY(20px);} }
-
 .info-popup { 
   position:fixed; 
   top:0; 
