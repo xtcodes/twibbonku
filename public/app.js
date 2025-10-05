@@ -1,4 +1,3 @@
-/* ==== NOTIFIKASI SEDERHANA ==== */
 /* ===== Global State ===== */
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -122,7 +121,7 @@ document.getElementById('modelInput').addEventListener('change', e=>{
   img.onload=()=>{
     modelImg=img; state.scale=Math.min(canvas.width/img.width,canvas.height/img.height);
     state.tx=0; state.ty=0; draw(); showButtons();
-    alert("Gambar berhasil diunggah!");
+    showNotifikasi("Gambar berhasil diunggah!","success");
     URL.revokeObjectURL(url);
   };
   img.src=url;
