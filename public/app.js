@@ -1,20 +1,4 @@
 /* ==== NOTIFIKASI SEDERHANA ==== */
-function showNotification(message, type="info"){
-  const container=document.getElementById("notification-container");
-  const notif=document.createElement("div");
-  notif.classList.add("notification");
-  if(type!=="info") notif.classList.add(type);
-  notif.textContent=message;
-  container.appendChild(notif);
-  setTimeout(()=>{
-    notif.style.animation="fadeOut 0.5s forwards";
-    notif.addEventListener("animationend", ()=>notif.remove());
-  },3000);
-}
-// Ganti alert bawaan
-window.alert=function(msg){ showNotification(msg,"error"); };
-
-
 /* ===== Global State ===== */
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -138,7 +122,7 @@ document.getElementById('modelInput').addEventListener('change', e=>{
   img.onload=()=>{
     modelImg=img; state.scale=Math.min(canvas.width/img.width,canvas.height/img.height);
     state.tx=0; state.ty=0; draw(); showButtons();
-    showNotification("Gambar berhasil diunggah!","success");
+    alert("Gambar berhasil diunggah!");
     URL.revokeObjectURL(url);
   };
   img.src=url;
