@@ -220,7 +220,7 @@ function generateOutputCanvas(){
   return out;
 }
 
-// ===== Gestur =====
+// ===== Touch gestures (mobile) =====
 let lastTouchDist=0,lastTouch=null,isTouching=false;
 canvas.addEventListener('touchstart', e=>{
   if(isLocked||!modelImg) return;
@@ -265,6 +265,60 @@ canvas.addEventListener('touchend', e=>{
   } 
 });
 
+// ===== Mouse drag & zoom (desktop) =====
+let isMouseDown = false;
+let lastMousePos = {x:0, y:0};
+
+// Drag dengan mouse
+canvas.addEventListener('mousedown', e=>{
+  if(isLocked || !modelImg) return;
+  e.preventDefault();
+  isEditing = true;
+  isMouseDown = true;
+  lastMousePos = {x: e.clientX, y: e.clientY};
+  draw();
+});
+
+canvas.addEventListener('mousemove', e=>{
+  if(isLocked || !isMouseDown || !modelImg) return;
+  e.preventDefault();
+  const dx = e.clientX - lastMousePos.x;
+  const dy = e.clientY - lastMousePos.y;
+  lastMousePos = {x: e.clientX, y: e.clientY};
+  state.tx += dx;
+  state.ty += dy;
+  draw();
+});
+
+canvas.addEventListener('mouseup', e=>{
+  if(isLocked) return;
+  isMouseDown = false;
+  isEditing = false;
+  draw();
+});
+
+canvas.addEventListener('mouseleave', e=>{
+  if(isLocked) return;
+  isMouseDown = false;
+  isEditing = false;
+  draw();
+});
+
+// Zoom dengan wheel
+canvas.addEventListener('wheel', e=>{
+  if(isLocked || !modelImg) return;
+  e.preventDefault();
+  const zoomFactor = 1.05;
+  if(e.deltaY < 0){
+    state.scale *= zoomFactor;
+  } else {
+    state.scale /= zoomFactor;
+  }
+  state.scale = Math.max(0.2, Math.min(state.scale,5));
+  draw();
+});
+
+// ===== Tombol Edit =====
 document.getElementById('editBtn').addEventListener('click', ()=>{
   isLocked=false; 
   canvas.style.pointerEvents="auto"; 
