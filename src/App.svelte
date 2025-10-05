@@ -35,6 +35,8 @@
   </div>
 </div>
 
+  <div id="notifikasi-container"></div>
+
 <style>
   .spinner-wrap {
     position:relative;
