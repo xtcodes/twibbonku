@@ -3,7 +3,6 @@
 </script>
 
 <div class="app">
-<div class="app">
   <div class="canvas-wrap">
     <canvas id="canvas"></canvas>
     <button id="editBtn" title="Edit Lagi"><i class="fas fa-pen"></i></button>
