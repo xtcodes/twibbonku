@@ -281,3 +281,13 @@ document.getElementById('editBtn').addEventListener('click', ()=>{
   }
   draw();
 });
+
+// Peringatan sebelum user keluar halaman
+window.addEventListener('beforeunload', (e) => {
+  // Tampilkan notifikasi kecil di app dulu (opsional)
+  showNotification("Pastikan Anda sudah menyimpan Twibbon!", "info");
+
+  // Standard dialog browser
+  e.preventDefault();
+  e.returnValue = ''; // diperlukan untuk Chrome
+});
