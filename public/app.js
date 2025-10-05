@@ -164,7 +164,7 @@ function showButtons(){
   /* Upload Twibbon */
   document.getElementById('twibbonInput').addEventListener('change', e=>{
     const f=e.target.files[0]; if(!f) return; 
-    if(f.type!=="image/png"){ alert("Hanya PNG transparan!"); return; }
+    if(f.type!=="image/png"){ showNotifikasi("Terjadi kesalahan!", "error"); return; }
 
     const url = URL.createObjectURL(f);
     const img = new Image();
@@ -175,7 +175,7 @@ function showButtons(){
       const pixels=tctx.getImageData(0,0,img.width,img.height).data;
       let hasTransparency=false;
       for(let i=3;i<pixels.length;i+=4){ if(pixels[i]<255){ hasTransparency=true; break; } }
-      if(!hasTransparency){ alert("Twibbon harus transparan!"); URL.revokeObjectURL(url); return; }
+      if(!hasTransparency){ showNotifikasi("Twibbon harus transparan!", "error"); URL.revokeObjectURL(url); return; }
 
       // Simpan twibbon
       twibbonFullRes=img;
