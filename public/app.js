@@ -207,7 +207,7 @@ function showButtons(){
     }
     function doFinish(){
       if(finished) return; finished=true;
-      if(!blobForDownload){ const dataUrl=generateOutputCanvas().toDataURL('image/png'); const a=document.createElement('a'); a.href=dataUrl; a.download='twibbon.png'; a.click(); }
+      if(!blobForDownload){ const dataUrl=generateOutputCanvas().toDataURL('image/png'); const a=document.createElement('a'); a.href=dataUrl; a.download='twibbon.png'; a.click(); showNotification("Gambar berhasil diunduh!","success"); }
       else{ const url=URL.createObjectURL(blobForDownload); const a=document.createElement('a'); a.href=url; a.download='twibbon.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500); }
       btn.innerHTML=`<i class="fas fa-check"></i><span> Sudah diunduh</span>`;
       btn.disabled=true; btn.style.background="#bbb"; btn.style.borderColor="#bbb"; btn.style.color="#555"; btn.style.cursor="not-allowed";
