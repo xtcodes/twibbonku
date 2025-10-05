@@ -81,34 +81,4 @@
   border-radius:6px; 
   cursor:pointer; 
 }
-
-/* Spinner animasi memutar */
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-.spinner-wrapper {
-  position: relative;
-  width: 16px;
-  height: 16px;
-}
-
-.spinner-wrapper .spinner {
-  width: 100%;
-  height: 100%;
-  border: 2px solid #333;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  box-sizing: border-box;
-}
-
-.spinner-wrapper .center-square {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  background: #000;
-  transform: translate(-50%, -50%);
-  border-radius: 1px;
-}
 </style>
